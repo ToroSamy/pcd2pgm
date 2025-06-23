@@ -32,7 +32,7 @@ Pcd2PgmNode::Pcd2PgmNode(const rclcpp::NodeOptions & options) : Node("pcd2pgm", 
   map_qos.keep_last(1);
 
   pcd_cloud_ = std::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
-  map_publisher_ = this->create_publisher<nav_msgs::msg::OccupancyGrid>(map_topic_name_, map_qos);
+  if (enablePublishMap) map_publisher_ = this->create_publisher<nav_msgs::msg::OccupancyGrid>(map_topic_name_, map_qos);
   pcd_publisher_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("pcd_cloud", 10);
 
   if (pcl::io::loadPCDFile<pcl::PointXYZ>(pcd_file_, *pcd_cloud_) == -1) {
@@ -46,7 +46,7 @@ Pcd2PgmNode::Pcd2PgmNode(const rclcpp::NodeOptions & options) : Node("pcd2pgm", 
 
   passThroughFilter(thre_z_min_, thre_z_max_, flag_pass_through_);
   radiusOutlierFilter(cloud_after_pass_through_, thre_radius_, thres_point_count_);
-  setMapTopicMsg(cloud_after_radius_, map_topic_msg_);
+  if (enablePublishMap) setMapTopicMsg(cloud_after_radius_, map_topic_msg_);
 
   timer_ =
     create_wall_timer(std::chrono::seconds(1), std::bind(&Pcd2PgmNode::publishCallback, this));
@@ -58,11 +58,12 @@ void Pcd2PgmNode::publishCallback()
   pcl::toROSMsg(*cloud_after_radius_, output);
   output.header.frame_id = "map";
   pcd_publisher_->publish(output);
-  map_publisher_->publish(map_topic_msg_);
+  if (enablePublishMap) map_publisher_->publish(map_topic_msg_);
 }
 
 void Pcd2PgmNode::declareParameters()
 {
+  declare_parameter("publish_map", true);
   declare_parameter("pcd_file", "");
   declare_parameter("thre_z_min", 0.5);
   declare_parameter("thre_z_max", 2.0);
@@ -77,6 +78,7 @@ void Pcd2PgmNode::declareParameters()
 
 void Pcd2PgmNode::getParameters()
 {
+  get_parameter("publish_map", enablePublishMap);
   get_parameter("pcd_file", pcd_file_);
   get_parameter("thre_z_min", thre_z_min_);
   get_parameter("thre_z_max", thre_z_max_);

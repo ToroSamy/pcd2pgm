@@ -47,7 +47,7 @@ private:
   void publishCallback();
 
   void applyTransform();
-
+  bool enablePublishMap;
   float thre_z_min_;
   float thre_z_max_;
   float thre_radius_;

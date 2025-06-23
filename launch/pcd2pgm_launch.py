@@ -23,7 +23,8 @@ from launch.actions import (
     SetEnvironmentVariable,
 )
 from launch.substitutions import LaunchConfiguration
-
+from launch_ros.descriptions import ComposableNode
+from launch_ros.actions import LoadComposableNodes
 
 def generate_launch_description():
     # Get the launch directory
@@ -84,5 +85,7 @@ def generate_launch_description():
     # Add the actions to launch all of the navigation nodes
     ld.add_action(start_pcd2pgm_cmd)
     ld.add_action(start_rviz_cmd)
+    # ld.add_action(start_map_server())
 
     return ld
+
